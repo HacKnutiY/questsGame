@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:quests/features/crud/screens/quests_storage.dart';
+import 'package:quests/features/crud/screens/quests_storage_screen.dart';
 
 
 class NewQuestScreen extends StatefulWidget {
@@ -8,23 +8,27 @@ class NewQuestScreen extends StatefulWidget {
   @override
   State<NewQuestScreen> createState() => _NewQuestScreenState();
 }
-
 class _NewQuestScreenState extends State<NewQuestScreen> {
+  TextEditingController controller = TextEditingController();
+
+  int questsCount = Storage.questsStorage.length;
 
   @override
   Future<void> deactivate() async {
     // TODO: implement didChangeDependencies
-    var sPref = await sharedPreferences;
+    if(questsCount!=Storage.questsStorage.length){
+      var sPref = await sharedPreferences;
 
-    sPref.setStringList("questsStorage", Storage.questsStorage);
-    print("Данные сохранены!");
+      sPref.setStringList("questsStorage", Storage.questsStorage);
+
+    }
 
 
     super.deactivate();
   }
   @override
   Widget build(BuildContext context) {
-    TextEditingController controller = TextEditingController();
+
     return Scaffold(
         body: SafeArea(
             child: Column(
@@ -40,9 +44,13 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
                       String textFieldString = controller.text.toString();
                       if(textFieldString.isNotEmpty){
                         Storage.questsStorage.add('''{"name": "$textFieldString"}''');
+                        Navigator.pushNamedAndRemoveUntil(context, "/myQuests", ModalRoute.withName("/"));
+                      }else{
+                        Navigator.pop(context, "/myQuests");
+
                       }
 
-                    Navigator.popAndPushNamed(context, "/myQuests");
+                    //
                     print(Storage.questsStorage);
                   }, child: Text("Сохранить", style: TextStyle(fontSize: 25),))
               ],

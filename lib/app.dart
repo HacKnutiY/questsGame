@@ -1,11 +1,12 @@
+import 'package:hive/hive.dart';
 import 'package:quests/features/home_screen.dart';
 import 'package:flutter/material.dart';
 
 import 'package:quests/features/home_screen.dart';
 import 'package:quests/features/crud/screens/new_quest_screen.dart';
-// import 'package:lessons/quiz_proj/features/screens/quest_screen.dart';
-import 'package:quests/features/game/screens/quest_screen_copy.dart';
-import 'package:quests/features/crud/screens/quests_storage.dart';
+// import 'package:lessons/quiz_proj/features/screens/quest_game_screen.dart';
+import 'package:quests/features/game/screens/quest_game_screen.dart';
+import 'package:quests/features/crud/screens/quests_storage_screen.dart';
 // import 'package:lessons/storages/shared_prefs/sp_widget.dart';
 
 

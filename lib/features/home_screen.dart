@@ -1,7 +1,7 @@
 
-
 import 'package:flutter/material.dart';
-import 'package:quests/features/crud/screens/quests_storage.dart';
+import 'package:hive/hive.dart';
+import 'package:quests/features/crud/screens/quests_storage_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -12,54 +12,31 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  var sp = SharedPreferences.getInstance();
+  var sharedPreferences = SharedPreferences.getInstance();
+
+  bool isQuestsLoad = false;
 
 
-
-  Future<void> setQuests() async{
-    final storage = await sp;
-    if(storage.getString("questsKey") == null){
-      storage.setString("questsKey",
-          '''
-        [
-          {
-            quest: "Какова глубина байкала, (м)",
-            ans1: "1642",
-            ans2: "1500",
-            ans3: "1432",
-            ans4: "1239",
-            correctAns: "1642"
-          },
-          {
-            quest: "Какова глубина байкала, (м)",
-            ans1: "1642",
-            ans2: "1500",
-            ans3: "1432",
-            ans4: "1239",
-            correctAns: "1642"
-          },
-          {
-            quest: "Какова глубина байкала, (м)",
-            ans1: "1642",
-            ans2: "1500",
-            ans3: "1432",
-            ans4: "1239",
-            correctAns: "1642"
-          },
-        ]
-        ''');
-    }
-
-  }
 
   @override
-  void didChangeDependencies() async{
-    // TODO: implement didChangeDependencies
-    var storage = await sp;
-    Storage.questsStorage = storage.getStringList("questsStorage") ?? [];
-    print("Данные заменены!");
-    super.didChangeDependencies();
+  void initState() {
+    // TODO: implement initState
+    loadQuests();
+    super.initState();
   }
+
+
+  Future<void> loadQuests() async{
+    if(!isQuestsLoad){
+      // var hiveStorage = Hive.box("HiveStorage");
+
+      var preferences = await sharedPreferences;
+      Storage.questsStorage = preferences.getStringList("questsStorage") ?? [];
+      isQuestsLoad = true;
+      print("Данные заменены!");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -70,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Text("Викторина"),
           SizedBox(height: 40,),
           TextButton(onPressed: (){
-            setQuests();
+
             Navigator.pushNamed(context, "/myQuests");
           }, child: Text("Мои викторины")),
           TextButton(onPressed: (){}, child: Text("Вопросы по сети")),

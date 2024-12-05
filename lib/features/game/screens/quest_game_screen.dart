@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class QuestsScreen extends StatefulWidget {
-   QuestsScreen({super.key,});
+   const QuestsScreen({super.key,});
 
   @override
   State<QuestsScreen> createState() => _QuestsScreenState();
@@ -10,18 +10,8 @@ class QuestsScreen extends StatefulWidget {
 
 class _QuestsScreenState extends State<QuestsScreen> {
 
-  @override
-  void deactivate() {
-    // TODO: implement deactivate
-    print("Parent deactivate!!");
-    super.deactivate();
-  }
 
-  void dispose() {
-    // TODO: implement deactivate
-    print("Parent dispose!!");
-    super.dispose();
-  }
+
   @override
   Widget build(BuildContext context) {
     return const Padding(
@@ -49,26 +39,21 @@ class QuestionsWidget extends StatefulWidget {
 class _QuestionsWidgetState extends State<QuestionsWidget> {
 
   @override
-  void didChangeDependencies() async {
-    super.didChangeDependencies();
+  void initState() {
+    loadData();
+    super.initState();
+  }
 
+  Future<void> loadData() async{
     var storage = await sharedPref;
     answers =  storage.getStringList("answers")??List.filled(questsList.length, "");
     _questIndex =  storage.getInt("ansIndex")??0;
- correctAns =  storage.getInt("correctAns")??0;
-    print("didChangeDependencies");
-
-    //если викторина не пройдена до конца
-setState(() {
-
-});
+    correctAns =  storage.getInt("correctAns")??0;
+    setState(() {});
   }
-
 
   @override
   Future<void> deactivate() async {
-    // TODO: implement dispose
-
 
       var storage = await sharedPref;
       //если викторина не пройдена до конца и дан хотя бы один ответ(чтобы индекс вопроса не сохранялся если викторину даже не начали проходить)
@@ -76,9 +61,6 @@ setState(() {
         await storage.setStringList("answers", answers);
         await storage.setInt("ansIndex", _questIndex);
         await storage.setInt("correctAns", correctAns);
-
-
-        print("Данные викторины сохранены");
       }
       else{
         storage.remove("answers");
@@ -86,14 +68,7 @@ setState(() {
 
         //счетчик правильных ответов не работает корректно из за поставленного условия
         storage.remove("correctAns");
-
-
-
       }
-      print("deactivate");
-
-
-
       super.deactivate();
 
   }
@@ -160,7 +135,7 @@ setState(() {
   int correctAns = 0;
   @override
   Widget build(BuildContext context) {
-print("build");
+    print("build");
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -205,25 +180,6 @@ print("build");
   }
 }
 
-
-/*
-class DataProvider extends InheritedWidget{
-
-  final int correctAnswer;//номер индекса в списке вопросов
-  final List<String?> answers;//номер индекса в списке вопросов
-  final List<Question> quests;
-
-  const DataProvider({super.key, required this.quests, required this.answers, required Widget child, required this.correctAnswer, }):super(child: child);
-
-  @override
-  bool updateShouldNotify(covariant DataProvider oldWidget) {
-    // TODO: implement updateShouldNotify
-    return answers.length == quests.length; //количество ненулл объектов в списке ответов (answers) == количество объектов в списке вопросов
-  }
-
-}
-
- */
 
 
 
