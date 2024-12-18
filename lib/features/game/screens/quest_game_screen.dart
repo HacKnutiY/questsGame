@@ -135,7 +135,7 @@ class _QuestionsWidgetState extends State<QuestionsWidget> {
   int correctAns = 0;
   @override
   Widget build(BuildContext context) {
-    print("build");
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -210,6 +210,9 @@ class ButtonWidget extends StatelessWidget {
 
 
 class Question {
+  @override
+  String toString() => "$quest, $ans1, $ans2, $ans3, $ans4,$correctAns";
+
   final String quest;
   final String ans1;
   final String ans2;
@@ -218,6 +221,8 @@ class Question {
   final String correctAns;
 
   const Question(this.quest, this.ans1, this.ans2, this.ans3, this.ans4, this.correctAns,);
+
+
 }
 
 

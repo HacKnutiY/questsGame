@@ -1,41 +1,49 @@
+import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
+import 'package:quests/constants.dart';
 import 'package:quests/features/crud/screens/quests_storage_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:quests/features/game/screens/quest_game_screen.dart';
+
+
 
 class HomeScreen extends StatefulWidget {
-   HomeScreen({super.key});
+  HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  var sharedPreferences = SharedPreferences.getInstance();
-
   bool isQuestsLoad = false;
 
 
 
   @override
   void initState() {
-    // TODO: implement initState
+    // TODO: if state переместитьиз метода сюда
+
     loadQuests();
     super.initState();
   }
 
 
   Future<void> loadQuests() async{
-    if(!isQuestsLoad){
-      // var hiveStorage = Hive.box("HiveStorage");
+    final box = await Hive.openBox<Quiz>(QUIZ_BOX_NAME);
+    //Hive.deleteFromDisk();
 
-      var preferences = await sharedPreferences;
-      Storage.questsStorage = preferences.getStringList("questsStorage") ?? [];
+    if(!isQuestsLoad){
+      Storage.quizesStorage = box.values.toList();
       isQuestsLoad = true;
-      print("Данные заменены!");
+
     }
+    box.close();
+
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -50,8 +58,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
             Navigator.pushNamed(context, "/myQuests");
           }, child: Text("Мои викторины")),
-          TextButton(onPressed: (){}, child: Text("Вопросы по сети")),
+          TextButton(onPressed: dataWork, child: Text("Вопросы по сети")),
           ],))),
     );
   }
 }
+Future<void> dataWork() async {
+/*
+  var box = await Hive.openBox<Question>(TEST_BOX_NAME);
+  await box.add(Question("quest", "ans1", "ans2", "ans3", "ans4", "correctAns"));
+
+  box.close();*/
+}
+

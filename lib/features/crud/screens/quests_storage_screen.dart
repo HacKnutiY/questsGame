@@ -1,17 +1,80 @@
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive/hive.dart';
+import 'package:quests/constants.dart';
+import 'package:quests/features/game/screens/quest_game_screen.dart' show Question;
+
 
 class Storage {
-  static List<String> questsStorage = [];
+  static List<Quiz> quizesStorage = [];
+  static List<Question> testStorage = [];
 
 
 }
-Future<SharedPreferences> sharedPreferences = SharedPreferences.getInstance();
+class QuestionAdapter extends TypeAdapter<Question>{
+  @override
+  int get typeId => 0;
+
+  @override
+  Question read(BinaryReader reader) {
+    //TODO описать как считывать/записывать поля Question и Quiz класса
+    final quest = reader.readString();
+    final ans1 = reader.readString();
+    final ans2 = reader.readString();
+    final ans3 = reader.readString();
+    final ans4 = reader.readString();
+    final correctAns = reader.readString();
+
+    return Question(quest, ans1, ans2, ans3, ans4, correctAns);
+  }
+
+  @override
+  void write(BinaryWriter writer, Question obj) {
+    writer.writeString(obj.quest);
+    writer.writeString(obj.ans1);
+    writer.writeString(obj.ans2);
+    writer.writeString(obj.ans3);
+    writer.writeString(obj.ans4);
+    writer.writeString(obj.correctAns);
+  }
+
+}
+
+
+
+class QuizAdapter extends TypeAdapter<Quiz>{
+  @override
+  int get typeId => 1;
+
+
+  @override
+  Quiz read(BinaryReader reader) {
+    final name = reader.readString();
+    final questions = reader.readList().cast<Question>();
+
+    return Quiz(name: name, questions: questions);
+  }
+
+
+  @override
+  void write(BinaryWriter writer, Quiz obj) {
+    writer.writeString(obj.name);
+    writer.writeList(obj.questions);
+
+  }
+
+}
+
+
+class Quiz{
+  String name;
+  List<Question> questions = [];
+  Quiz({required this.name, required this.questions});
+}
+// Future<SharedPreferences> sharedPreferences = SharedPreferences.getInstance();
 class QuestsStorageScreen extends StatefulWidget {
 
-  QuestsStorageScreen({super.key});
+  const QuestsStorageScreen({super.key});
 
   @override
   State<QuestsStorageScreen> createState() => _QuestsStorageScreenState();
@@ -22,13 +85,12 @@ class _QuestsStorageScreenState extends State<QuestsStorageScreen> {
 @override
   void didChangeDependencies() {
     // TODO: implement didChangeDependencies
-  print("didChangeDependencies");
   super.didChangeDependencies();
   }
 
   @override
   Widget build(BuildContext context) {
-  print("build Storage");
+
     return Scaffold(
       floatingActionButton: FloatingActionButton(onPressed: (){
         Navigator.pushNamed(context, "/myQuests/newQuest",);
@@ -39,12 +101,12 @@ class _QuestsStorageScreenState extends State<QuestsStorageScreen> {
           child: Stack(
             children:[
               ListView.builder(
-                  itemCount: Storage.questsStorage.length,
-                  itemBuilder: (BuildContext context, int index) => QuestWidget(text: (Storage.questsStorage[index]))),
+                  itemCount: Storage.quizesStorage.length,
+                  itemBuilder: (BuildContext context, int index)=> QuestWidget(text: Storage.quizesStorage[index].name)),
   Positioned(
   bottom: 0,
   left: 0,
-  child: TextButton(onPressed: (){Storage.questsStorage.clear(); setState(() {
+  child: TextButton(onPressed: (){Storage.quizesStorage.clear(); setState(() {
 
   });}, child: Text("Remove all")),
 )
@@ -57,10 +119,7 @@ class _QuestsStorageScreenState extends State<QuestsStorageScreen> {
 
 
 class QuestWidget extends StatelessWidget {
-  String decodeName(String jsonString){
-    String text = jsonDecode(jsonString)["name"];
-    return text;
-  }
+
   const QuestWidget({super.key, required this.text});
   final String text;
   @override
@@ -72,7 +131,7 @@ class QuestWidget extends StatelessWidget {
         child: Container(
           padding: EdgeInsetsDirectional.all(10),
           color: Colors.black,
-          child: Center(child: Text(decodeName(text), style: TextStyle(fontSize: 25, color: Colors.white),),),
+          child: Center(child: Text(text, style: TextStyle(fontSize: 25, color: Colors.white),),),
         ),
       ),
     );
