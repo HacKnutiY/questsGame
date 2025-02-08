@@ -1,76 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:quests/constants.dart';
-import 'package:quests/features/game/screens/quest_game_screen.dart'
+import 'package:quests/features/game/screens/quiz_game_screen.dart'
     show Question;
+
+part 'quests_storage_screen.g.dart';
 
 class Storage {
   static List<Quiz> quizzesStorage = [];
 }
 
-class QuestionAdapter extends TypeAdapter<Question> {
-  @override
-  int get typeId => 0;
-
-  @override
-  Question read(BinaryReader reader) {
-    //TODO описать как считывать/записывать поля Question и Quiz класса
-    final quest = reader.readString();
-    final ans1 = reader.readString();
-    final ans2 = reader.readString();
-    final ans3 = reader.readString();
-    final ans4 = reader.readString();
-    final correctAns = reader.readString();
-
-    return Question(
-        quest: quest,
-        ans1: ans1,
-        ans2: ans2,
-        ans3: ans3,
-        ans4: ans4,
-        correctAns: correctAns);
-  }
-
-  @override
-  void write(BinaryWriter writer, Question obj) {
-    writer.writeString(obj.quest);
-    writer.writeString(obj.ans1);
-    writer.writeString(obj.ans2);
-    writer.writeString(obj.ans3);
-    writer.writeString(obj.ans4);
-    writer.writeString(obj.correctAns);
-  }
-}
-
-class QuizAdapter extends TypeAdapter<Quiz> {
-  @override
-  int get typeId => 1;
-
-  @override
-  Quiz read(BinaryReader reader) {
-    final id = reader.readInt();
-    final name = reader.readString();
-    final questions = reader.readList().cast<Question>();
-
-    return Quiz(name: name, questions: questions, id: id);
-  }
-
-  @override
-  void write(BinaryWriter writer, Quiz obj) {
-    writer.writeInt(obj.id);
-    writer.writeString(obj.name);
-    writer.writeList(obj.questions);
-  }
-}
-
-class Quiz {
+@HiveType(typeId: 1)
+class Quiz extends HiveObject {
+  @HiveField(0)
   String name;
+  @HiveField(1)
   int id;
-  List<Question> questions = [];
+  @HiveField(2)
+  List<Question> questions;
+  //User data
+  @HiveField(3)
+  int userLastQuestionIndex;
+  @HiveField(4)
+  List<String> userAnswersList = [];
+  @HiveField(5)
+  int userCorrectAnswersCount;
   Quiz({
     required this.id,
     required this.name,
     required this.questions,
+    required this.userAnswersList,
+    required this.userCorrectAnswersCount,
+    required this.userLastQuestionIndex,
   });
 }
 
@@ -91,69 +52,84 @@ class _QuestsStorageScreenState extends State<QuestsStorageScreen> {
 
   late TextEditingController searchFieldController;
 
-  List sortedQuizzes = [];
+  List<Quiz> sortedQuizzes = Storage.quizzesStorage;
+
+  void removeQuizFromHive() async {
+    var box = await Hive.openBox<Quiz>(QUIZ_BOX_NAME);
+    box.clear();
+  }
+
+  void removeQuizFromList() {
+    Storage.quizzesStorage.clear();
+    sortedQuizzes.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.pushNamed(
-              context,
-              "/myQuests/newQuest",
-            );
-          },
-          child: const Text(
-            "+",
-            style: TextStyle(fontSize: 30),
-          ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(
+            context,
+            "/myQuests/newQuest",
+          );
+        },
+        child: const Text(
+          "+",
+          style: TextStyle(fontSize: 30),
         ),
-        body: Stack(
-          children: [
-            //Список викторин
-            SafeArea(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 60),
-                child: ListView.builder(
-                    itemCount: Storage.quizzesStorage.length,
-                    itemBuilder: (BuildContext context, int index) =>
-                        QuizWidget(
-                            text: Storage.quizzesStorage[index].name,
-                            index: Storage.quizzesStorage[index].id)),
+      ),
+      body: Stack(
+        children: [
+          //Список викторин
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 60),
+              child: ListView.builder(
+                itemCount: sortedQuizzes.length,
+                itemBuilder: (BuildContext context, int index) => QuizWidget(
+                  text: sortedQuizzes[index].name,
+                  index: sortedQuizzes[index].id,
+                ),
               ),
             ),
-            //Поисковая строка
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 22),
-              child: TextField(
-                onChanged: (value) => {},
-                controller: searchFieldController,
-                decoration: const InputDecoration(
-                    fillColor: Colors.white,
-                    filled: true,
-                    labelText: "Найти викторину",
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.black, width: 2.0)),
-                    enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.black, width: 1.0))),
-              ),
+          ),
+          //Поисковая строка
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 22),
+            child: TextField(
+              onChanged: (value) {
+                sortedQuizzes = Storage.quizzesStorage
+                    .where((Quiz element) => element.name.contains(value))
+                    .toList();
+                setState(() {});
+              },
+              controller: searchFieldController,
+              decoration: const InputDecoration(
+                  fillColor: Colors.white,
+                  filled: true,
+                  labelText: "Найти викторину",
+                  border: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black, width: 2.0)),
+                  enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black, width: 1.0))),
             ),
-            //Remove all кнопка
-            Positioned(
-              bottom: 0,
-              left: 0,
-              child: TextButton(
-                  onPressed: () {
-                    removeQuizFromStorage();
-                    setState(() {});
-                  },
-                  child: Text("Remove all")),
-            )
-          ],
-        ),);
+          ),
+          //Remove all кнопка
+          Positioned(
+            bottom: 0,
+            left: 0,
+            child: TextButton(
+                onPressed: () {
+                  removeQuizFromStorage();
+                  setState(() {});
+                },
+                child: Text("Remove all")),
+          )
+        ],
+      ),
+    );
   }
 
   void removeQuizFromStorage() {
@@ -190,14 +166,7 @@ class QuizWidget extends StatelessWidget {
   }
 }
 
-void removeQuizFromHive() async {
-  var box = await Hive.openBox<Quiz>(QUIZ_BOX_NAME);
-  box.clear();
-}
 
-void removeQuizFromList() {
-  Storage.quizzesStorage.clear();
-}
 /*List<Widget> getWidgets(){
   List<Widget> questWidgetsList=[];
   for (String element in Storage.questsStorage) {

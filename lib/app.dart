@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:quests/features/home_screen.dart';
 import 'package:quests/features/crud/screens/new_quiz_screen.dart';
 // import 'package:lessons/quiz_proj/features/screens/quest_game_screen.dart';
-import 'package:quests/features/game/screens/quest_game_screen.dart';
+import 'package:quests/features/game/screens/quiz_game_screen.dart';
 import 'package:quests/features/crud/screens/quests_storage_screen.dart';
 // import 'package:lessons/storages/shared_prefs/sp_widget.dart';
 

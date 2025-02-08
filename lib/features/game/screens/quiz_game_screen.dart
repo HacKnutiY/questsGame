@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:quests/constants.dart';
 import 'package:quests/features/crud/screens/quests_storage_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+part 'quiz_game_screen.g.dart';
 
 class QuestsScreen extends StatefulWidget {
   const QuestsScreen({
@@ -42,10 +45,43 @@ class _QuestionsWidgetState extends State<QuestionsWidget> {
     super.initState();
   }
 
+  late final Quiz quiz;
+
   @override
   void didChangeDependencies() {
-    final quiz = ModalRoute.of(context)!.settings.arguments as Quiz;
+    quiz = ModalRoute.of(context)!.settings.arguments as Quiz;
     questions = quiz.questions;
+    answers = quiz.userAnswersList.isEmpty
+        ? List.filled(questions.length, "")
+        : quiz.userAnswersList;
+    _questIndex = quiz.userLastQuestionIndex;
+    correctAns = quiz.userCorrectAnswersCount;
+    quiz.userLastQuestionIndex = _questIndex;
+  }
+
+  @override
+  void deactivate() {
+    // TODO: implement deactivate
+    //Получить доступ к викторине из Hive и изменить ее поля + поля списка
+
+    updateQuiz();
+
+    super.deactivate();
+  }
+
+  Future<void> updateQuiz() async {
+    Quiz updatedQuiz = Quiz(
+      id: quiz.id,
+      name: quiz.name,
+      questions: questions,
+      userAnswersList: answers,
+      userCorrectAnswersCount: correctAns,
+      userLastQuestionIndex: _questIndex,
+    );
+    // var box = await Hive.openBox(QUIZ_BOX_NAME);
+    // await box.putAt(quiz.id, updatedQuiz);
+    // await box.close();
+    // Storage.quizzesStorage.add(quiz);
   }
 
   //UI переменные/функции
@@ -57,8 +93,6 @@ class _QuestionsWidgetState extends State<QuestionsWidget> {
   //Хранилища данных
   late List<String> answers = List.filled(questions.length, "");
   late List<Question> questions;
-
-  //Future<SharedPreferences> sharedPref = SharedPreferences.getInstance();
 
   //внести ответ
   void setAns(String value) {
@@ -179,11 +213,12 @@ class _QuestionsWidgetState extends State<QuestionsWidget> {
 }
 
 class ButtonWidget extends StatelessWidget {
-  const ButtonWidget(
-      {super.key,
-      required this.text,
-      required this.onPressed,
-      required this.color});
+  const ButtonWidget({
+    super.key,
+    required this.text,
+    required this.onPressed,
+    required this.color,
+  });
   final String text;
 
   final Color color;
@@ -206,15 +241,22 @@ class ButtonWidget extends StatelessWidget {
   }
 }
 
+@HiveType(typeId: 0)
 class Question {
   @override
   String toString() => "$quest, $ans1, $ans2, $ans3, $ans4, $correctAns";
 
+  @HiveField(0)
   final String quest;
+  @HiveField(1)
   final String ans1;
+  @HiveField(2)
   final String ans2;
+  @HiveField(3)
   final String ans3;
+  @HiveField(4)
   final String ans4;
+  @HiveField(5)
   final String correctAns;
 
   const Question({

@@ -4,7 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:quests/constants.dart';
 import 'package:quests/features/crud/screens/quests_storage_screen.dart';
-import 'package:quests/features/game/screens/quest_game_screen.dart';
+import 'package:quests/features/game/screens/quiz_game_screen.dart';
 
 class NewQuestScreen extends StatefulWidget {
   const NewQuestScreen({super.key});
@@ -29,7 +29,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
   String questionFieldWarningText = "";
   String quizFieldWarningText = "";
 
-  //Добавление викторины в хранилища. 
+  //Добавление викторины в хранилища.
   void addQuizzesToStorage(String textFieldString, Quiz quiz) {
     addQuizToList(textFieldString, quiz);
     addQuizToHive(textFieldString, quiz);
@@ -42,7 +42,7 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
   Future<void> addQuizToHive(String textFieldString, Quiz quiz) async {
     var box = await Hive.openBox<Quiz>(QUIZ_BOX_NAME);
     await box.add(quiz);
-    box.close();
+    await box.close();
   }
 
   //Create & add question
@@ -63,7 +63,10 @@ class _NewQuestScreenState extends State<NewQuestScreen> {
       Quiz quiz = Quiz(
           name: quizNameController.text.toString(),
           questions: userQuestionsList,
-          id: Storage.quizzesStorage.length);
+          id: Storage.quizzesStorage.length,
+          userCorrectAnswersCount: 0,
+          userLastQuestionIndex: 0,
+          userAnswersList: []);
       addQuizzesToStorage(quizNameController.text.toString(), quiz);
       Navigator.pushNamedAndRemoveUntil(
           context, "/myQuests", ModalRoute.withName("/"));

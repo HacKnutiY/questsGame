@@ -4,7 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:quests/constants.dart';
 import 'package:quests/features/crud/screens/quests_storage_screen.dart';
-import 'package:quests/features/game/screens/quest_game_screen.dart';
+import 'package:quests/features/game/screens/quiz_game_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({super.key});
@@ -29,9 +29,12 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!isQuizessLoad) {
       Storage.quizzesStorage = box.values.toList();
       isQuizessLoad = true;
+
+      print("Box открыт");
     }
 
-    box.close();
+    await box.close();
+
   }
 
   @override
